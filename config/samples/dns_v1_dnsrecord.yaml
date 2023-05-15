@@ -1,0 +1,9 @@
+apiVersion: dns.xzzpig.com/v1
+kind: DNSRecord
+metadata:
+  name: dnsrecord-sample
+  namespace: default
+spec:
+  recordType: A
+  name: test.sample.com
+  value: 192.168.1.1

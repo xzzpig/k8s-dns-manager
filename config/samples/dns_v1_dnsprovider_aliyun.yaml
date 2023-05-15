@@ -1,0 +1,10 @@
+apiVersion: dns.xzzpig.com/v1
+kind: DNSProvider
+metadata:
+  name: dnsprovider-sample-aliyun
+spec:
+  providerType: ALIYUN
+  domainName: sample.com
+  aliyun:
+    accessKeyId: "<your-access-key-id>"
+    accessKeySecret: "<your-access-key-secret>"
