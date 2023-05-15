@@ -15,7 +15,22 @@ spec:
     singular: dnsrecord
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    - jsonPath: .status.providerRef.name
+      name: Provider
+      priority: 1
+      type: string
+    - jsonPath: .status.message
+      name: Message
+      priority: 1
+      type: string
+    name: v1
     schema:
       openAPIV3Schema:
         description: DNSRecord is the Schema for the dnsrecords API

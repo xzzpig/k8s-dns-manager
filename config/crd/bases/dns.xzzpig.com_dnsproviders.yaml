@@ -15,7 +15,21 @@ spec:
     singular: dnsprovider
   scope: Cluster
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.domainName
+      name: Domain
+      type: string
+    - jsonPath: .spec.providerType
+      name: Type
+      type: string
+    - jsonPath: .status.valid
+      name: Valid
+      type: boolean
+    - jsonPath: .status.message
+      name: Message
+      priority: 1
+      type: string
+    name: v1
     schema:
       openAPIV3Schema:
         description: DNSProvider is the Schema for the dnsproviders API

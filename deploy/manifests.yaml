@@ -27,7 +27,21 @@ spec:
     singular: dnsprovider
   scope: Cluster
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.domainName
+      name: Domain
+      type: string
+    - jsonPath: .spec.providerType
+      name: Type
+      type: string
+    - jsonPath: .status.valid
+      name: Valid
+      type: boolean
+    - jsonPath: .status.message
+      name: Message
+      priority: 1
+      type: string
+    name: v1
     schema:
       openAPIV3Schema:
         description: DNSProvider is the Schema for the dnsproviders API
@@ -99,7 +113,22 @@ spec:
     singular: dnsrecord
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    - jsonPath: .status.providerRef.name
+      name: Provider
+      priority: 1
+      type: string
+    - jsonPath: .status.message
+      name: Message
+      priority: 1
+      type: string
+    name: v1
     schema:
       openAPIV3Schema:
         description: DNSRecord is the Schema for the dnsrecords API
@@ -232,6 +261,13 @@ metadata:
   creationTimestamp: null
   name: k8s-dns-manager-manager-role
 rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
 - apiGroups:
   - dns.xzzpig.com
   resources:

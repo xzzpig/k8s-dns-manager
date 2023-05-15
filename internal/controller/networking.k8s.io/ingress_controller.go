@@ -189,7 +189,7 @@ func (r *IngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		if owner == nil {
 			return nil
 		}
-		// ...make sure it's a CronJob...
+		// ...make sure it's a Ingress...
 		if owner.APIVersion != apiGVStr || owner.Kind != "Ingress" {
 			return nil
 		}

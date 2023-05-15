@@ -49,6 +49,10 @@ type DNSProviderStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster
+//+kubebuilder:printcolumn:name="Domain",type=string,JSONPath=`.spec.domainName`
+//+kubebuilder:printcolumn:name="Type",type=string,JSONPath=`.spec.providerType`
+//+kubebuilder:printcolumn:name="Valid",type=boolean,JSONPath=`.status.valid`
+//+kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`,priority=1
 
 // DNSProvider is the Schema for the dnsproviders API
 type DNSProvider struct {

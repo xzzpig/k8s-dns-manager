@@ -73,6 +73,10 @@ type DNSRecordStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Status",type=string,JSONPath=".status.status"
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+//+kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.providerRef.name",priority=1
+//+kubebuilder:printcolumn:name="Message",type="string",JSONPath=".status.message",priority=1
 
 // DNSRecord is the Schema for the dnsrecords API
 type DNSRecord struct {
