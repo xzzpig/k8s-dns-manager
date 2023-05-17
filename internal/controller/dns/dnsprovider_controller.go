@@ -20,6 +20,7 @@ import (
 	"context"
 	"time"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -57,6 +58,19 @@ func (r *DNSProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if err := r.Get(ctx, req.NamespacedName, &dnsProvider); err != nil {
 		logger.Error(err, "unable to fetch DNSProvider")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if dnsProvider.Spec.Selector != nil {
+		_, err := metav1.LabelSelectorAsSelector(dnsProvider.Spec.Selector)
+		if err != nil {
+			logger.Error(err, "unable to parse DNSProvider selector")
+			dnsProvider.Status.Valid = false
+			dnsProvider.Status.Message = err.Error()
+			if err := r.Status().Update(ctx, &dnsProvider); err != nil {
+				logger.Error(err, "unable to update DNSProvider status")
+			}
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
+		}
 	}
 
 	_, err := provider.New(ctx, &dnsProvider.Spec)

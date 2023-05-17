@@ -117,7 +117,7 @@ func (r *DNSRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{}, err
 		}
 		for _, provider := range providerList.Items {
-			if dnsRecord.Spec.Match(&provider.Spec) {
+			if dnsRecord.Match(&provider.Spec) {
 				status.ProviderRef.Name = provider.Name
 				status.ProviderRef.Namespace = provider.Namespace
 				showResult("provider found for "+dnsRecord.Spec.Name+" provider: "+provider.Name, nil)
@@ -142,7 +142,7 @@ func (r *DNSRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{Requeue: true}, nil
 	}
 
-	if !dnsRecord.Spec.Match(&dnsProvider.Spec) {
+	if !dnsRecord.Match(&dnsProvider.Spec) {
 		status.ProviderRef.Namespace = ""
 		status.ProviderRef.Name = ""
 		showResult("provider not match for "+dnsRecord.Spec.Name, errors.New("provider mismatch"))

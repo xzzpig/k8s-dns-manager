@@ -34,16 +34,16 @@ type AliyunProviderConfig struct {
 }
 
 type CloudflareProviderConfig struct {
-	// +kubebuilder:validation:Optional
+	// +optional
 	// If empty, spec.domainName will be used as zone name
 	ZoneName string `json:"zoneName,omitempty"`
-	// +kubebuilder:validation:Optional
+	// +optional
 	APIToken string `json:"apiToken"`
-	// +kubebuilder:validation:Optional
+	// +optional
 	Key string `json:"key"`
-	// +kubebuilder:validation:Optional
+	// +optional
 	Email string `json:"email"`
-	// +kubebuilder:validation:Optional
+	// +optional
 	// +kubebuilder:default=false
 	// If true, the DNS record will be proxied by Cloudflare, can be overrided by Annotation `dns.xzzpig.com/record-proxied`
 	Proxied bool `json:"proxied"`
@@ -53,9 +53,11 @@ type CloudflareProviderConfig struct {
 type DNSProviderSpec struct {
 	DomainName   string          `json:"domainName"`
 	ProviderType DNSProviderType `json:"providerType"`
-	// +kubebuilder:validation:Optional
+	// +optional
+	Selector *metav1.LabelSelector `json:"selector,omitempty"`
+	// +optional
 	Aliyun AliyunProviderConfig `json:"aliyun,omitempty"`
-	// +kubebuilder:validation:Optional
+	// +optional
 	Cloudflare CloudflareProviderConfig `json:"cloudflare,omitempty"`
 }
 

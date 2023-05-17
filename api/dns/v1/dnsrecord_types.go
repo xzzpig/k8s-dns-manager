@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -40,7 +41,7 @@ const (
 )
 
 type NamespacedName struct {
-	// +kubebuilder:validation:Optional
+	// +optional
 	Namespace string `json:"namespace,omitempty"`
 	Name      string `json:"name"`
 }
@@ -50,7 +51,7 @@ type DNSRecordSpec struct {
 	RecordType DNSRecordType `json:"recordType"`
 	Name       string        `json:"name"`
 	Value      string        `json:"value"`
-	// +kubebuilder:validation:Optional
+	// +optional
 	TTL *int `json:"ttl"`
 }
 
@@ -101,9 +102,19 @@ func init() {
 	SchemeBuilder.Register(&DNSRecord{}, &DNSRecordList{})
 }
 
-func (record *DNSRecordSpec) Match(provider *DNSProviderSpec) bool {
+func (record *DNSRecord) Match(provider *DNSProviderSpec) bool {
 	domainName := "." + provider.DomainName
-	return strings.HasSuffix(record.Name, domainName)
+	if !strings.HasSuffix(record.Spec.Name, domainName) {
+		return false
+	}
+	if provider.Selector != nil {
+		selector, err := metav1.LabelSelectorAsSelector(provider.Selector)
+		if err != nil {
+			return false
+		}
+		return selector.Matches(labels.Set(record.Labels))
+	}
+	return true
 }
 
 func (record *DNSRecordSpec) RR(provider *DNSProviderSpec) string {
