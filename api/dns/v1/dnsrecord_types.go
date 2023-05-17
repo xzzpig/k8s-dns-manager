@@ -67,6 +67,7 @@ const (
 // DNSRecordStatus defines the observed state of DNSRecord
 type DNSRecordStatus struct {
 	ProviderRef NamespacedName       `json:"providerRef"`
+	RecordID    string               `json:"recordID,omitempty"`
 	Status      DNSRecordStatusPhase `json:"status"`
 	Message     string               `json:"message"`
 }

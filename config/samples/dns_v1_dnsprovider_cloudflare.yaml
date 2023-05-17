@@ -1,0 +1,15 @@
+apiVersion: dns.xzzpig.com/v1
+kind: DNSProvider
+metadata:
+  name: dnsprovider-sample-cloudflare
+spec:
+  providerType: CLOUDFLARE
+  domainName: sample.com
+  cloudflare:
+    proxied: false
+    zoneName: sample.com # If empty, spec.domainName will be used as zone name
+    #use apiToken or key+email to auth
+    #if both are set, apiToken will be used
+    apiToken: "<your-api-token>"
+    key: "<your-key>"
+    email: "<your-email>"

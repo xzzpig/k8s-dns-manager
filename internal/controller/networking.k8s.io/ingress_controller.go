@@ -19,6 +19,7 @@ package networkingk8sio
 import (
 	"context"
 	"reflect"
+	"strings"
 
 	dnsv1 "github.com/xzzpig/k8s-dns-manager/api/dns/v1"
 	"github.com/xzzpig/k8s-dns-manager/pkg/config"
@@ -117,6 +118,19 @@ func (r *IngressReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		ownedRecordMap[record.Spec.Name] = record
 	}
 
+	ingressAnnotationMap := make(map[string]string)
+	for k, v := range ingress.Annotations {
+		if strings.HasPrefix(k, generator.AnnotationKeyRecordPrefix) {
+			ingressAnnotationMap[k] = v
+		}
+	}
+	ingressLabelMap := make(map[string]string)
+	for k, v := range ingress.Labels {
+		if strings.HasPrefix(k, generator.AnnotationKeyRecordPrefix) {
+			ingressLabelMap[k] = v
+		}
+	}
+
 	oldLogger := logger
 	for _, record := range records {
 		logger = oldLogger.WithValues("dns", record)
@@ -133,12 +147,16 @@ func (r *IngressReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			exists = false
 		}
 		specEquals := reflect.DeepEqual(dnsRecord.Spec, record)
-		if specEquals {
+		annotationEquals := reflect.DeepEqual(dnsRecord.Annotations, ingressAnnotationMap)
+		labelEquals := reflect.DeepEqual(dnsRecord.Labels, ingressLabelMap)
+		if specEquals && annotationEquals && labelEquals {
 			continue
 		}
 		dnsRecord.Spec = record
 		dnsRecord.Name = record.SpinalName()
 		dnsRecord.Namespace = ingress.Namespace
+		dnsRecord.Annotations = ingressAnnotationMap
+		dnsRecord.Labels = ingressLabelMap
 		if err := ctrl.SetControllerReference(&ingress, &dnsRecord, r.Scheme); err != nil {
 			showResult("Error", "set controller reference error", err)
 			return ctrl.Result{}, err
@@ -209,13 +227,16 @@ func (r *IngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				newGeneration := e.ObjectNew.GetGeneration()
 				oldAnnotations := e.ObjectOld.GetAnnotations()
 				newAnnotations := e.ObjectNew.GetAnnotations()
+				oldLables := e.ObjectOld.GetLabels()
+				newLables := e.ObjectNew.GetLabels()
 				// Generation is only updated on spec changes (also on deletion),
 				// not metadata or status
 				// Filter out events where the generation hasn't changed to
 				// avoid being triggered by status updates
 
 				return oldGeneration != newGeneration ||
-					!reflect.DeepEqual(oldAnnotations, newAnnotations)
+					!reflect.DeepEqual(oldAnnotations, newAnnotations) ||
+					!reflect.DeepEqual(oldLables, newLables)
 			},
 			DeleteFunc: func(e event.DeleteEvent) bool {
 				// The reconciler adds a finalizer so we perform clean-up

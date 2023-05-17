@@ -154,7 +154,7 @@ func (r *DNSRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
-	iprovider, err := provider.New(&dnsProvider.Spec)
+	iprovider, err := provider.New(ctx, &dnsProvider.Spec)
 	if err != nil {
 		status.ProviderRef.Namespace = ""
 		status.ProviderRef.Name = ""
@@ -177,7 +177,7 @@ func (r *DNSRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{Requeue: true}, nil
 	}
 
-	recordID, ok, err := iprovider.SearchRecord(&dnsRecord)
+	recordID, ok, err := iprovider.SearchRecord(ctx, &dnsRecord)
 	if err != nil {
 		showResult("unable to search record", err)
 		status.Status = dnsv1.DNSRecordStatusPhaseFailed
@@ -185,7 +185,7 @@ func (r *DNSRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 	if dnsRecord.DeletionTimestamp.IsZero() {
 		if ok {
-			if err := iprovider.UpdateRecord(&dnsRecord, &recordID); err != nil {
+			if err := iprovider.UpdateRecord(ctx, &dnsRecord, &recordID); err != nil {
 				showResult("unable to update record", err)
 				status.Status = dnsv1.DNSRecordStatusPhaseFailed
 				return ctrl.Result{RequeueAfter: time.Minute}, nil
@@ -198,12 +198,14 @@ func (r *DNSRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			}
 			return ctrl.Result{}, nil
 		} else {
-			if _, err := iprovider.CreateRecord(&dnsRecord); err != nil {
+			recordID, err := iprovider.CreateRecord(ctx, &dnsRecord)
+			if err != nil {
 				showResult("unable to create record", err)
 				status.Status = dnsv1.DNSRecordStatusPhaseFailed
 				return ctrl.Result{RequeueAfter: time.Minute}, nil
 			}
 			status.Status = dnsv1.DNSRecordStatusPhaseSuccess
+			status.RecordID = recordID
 			showResult("synced", nil)
 			if err := r.addFinalizer(ctx, dnsRecordOrigin); err != nil {
 				logger.Error(err, "unable to add finalizer")
@@ -213,7 +215,7 @@ func (r *DNSRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	} else {
 		if ok {
-			if err := iprovider.DeleteRecord(&dnsRecord, &recordID); err != nil {
+			if err := iprovider.DeleteRecord(ctx, &dnsRecord, &recordID); err != nil {
 				showResult("unable to delete record", err)
 				status.Status = dnsv1.DNSRecordStatusPhaseFailed
 				return ctrl.Result{RequeueAfter: time.Minute}, nil
@@ -262,12 +264,18 @@ func (r *DNSRecordReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			UpdateFunc: func(e event.UpdateEvent) bool {
 				oldGeneration := e.ObjectOld.GetGeneration()
 				newGeneration := e.ObjectNew.GetGeneration()
+				oldAnnotations := e.ObjectOld.GetAnnotations()
+				newAnnotations := e.ObjectNew.GetAnnotations()
+				oldLables := e.ObjectOld.GetLabels()
+				newLables := e.ObjectNew.GetLabels()
 				// Generation is only updated on spec changes (also on deletion),
 				// not metadata or status
 				// Filter out events where the generation hasn't changed to
 				// avoid being triggered by status updates
 
-				return oldGeneration != newGeneration
+				return oldGeneration != newGeneration ||
+					!reflect.DeepEqual(oldAnnotations, newAnnotations) ||
+					!reflect.DeepEqual(oldLables, newLables)
 			},
 			DeleteFunc: func(e event.DeleteEvent) bool {
 				// The reconciler adds a finalizer so we perform clean-up

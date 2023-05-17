@@ -47,6 +47,7 @@ metadata:
   name: test
   annotations:
     dns.xzzpig.com/generator: ddns
+    dns.xzzpig.com/record-proxied: "true" #Annotation/Label start with `dns.xzzpig.com/record-` will be copied to the DNSRecord
 spec:
   rules:
   - host: test.example.com
@@ -87,6 +88,25 @@ spec:
     accessKeySecret: "<your-access-key-secret>"
 ```
 
+#### Cloudflare
+```yaml
+apiVersion: dns.xzzpig.com/v1
+kind: DNSProvider
+metadata:
+  name: dnsprovider-sample-cloudflare
+spec:
+  providerType: CLOUDFLARE
+  domainName: sample.com
+  cloudflare:
+    proxied: false #If true, the DNS record will be proxied by Cloudflare, can be overrided by Annotation `dns.xzzpig.com/record-proxied`, default is false
+    zoneName: sample.com # If empty, spec.domainName will be used as zone name
+    #use apiToken or key+email to auth
+    #if both are set, apiToken will be used
+    apiToken: "<your-api-token>"
+    key: "<your-key>"
+    email: "<your-email>"
+```
+
 ### Supported DNS Types
 - A
 - CNAME
@@ -119,12 +139,13 @@ spec:
 | Name | Description | Target |
 | --- | --- | --- |
 | dns.xzzpig.com/generator | The `Generator Types` for DNS records | Ingress |
-| dns.xzzpig.com/cname | The value of CNAME record, will be used when generator type is `cname` | Ingress |
+| dns.xzzpig.com/cname | The value of CNAME record | Ingress(`generator`=`cname`) |
+| dns.xzzpig.com/record-proxied | `DNSRecord` will be set as proxied  | Ingress DNSRecord(`recordType`=`CLOUDFLARE`) |
 
 ## TODO
 - [ ] Support more DNS providers
     - [x] Aliyun
-    - [ ] Cloudflare
+    - [x] Cloudflare
     - [ ] DNSPod
 - [ ] Auto generate DNS records for more targets
     - [x] Ingress

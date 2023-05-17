@@ -13,7 +13,7 @@ import (
  * @return Client
  * @throws Exception
  */
-func CreateClient(accessKeyId *string, accessKeySecret *string) (_result *alidns.Client, _err error) {
+func CreateAliDnsClient(accessKeyId *string, accessKeySecret *string) (_result *alidns.Client, _err error) {
 	config := &openapi.Config{}
 	// 您的AccessKey ID
 	config.AccessKeyId = accessKeyId
@@ -40,7 +40,7 @@ func NewAliDnsUtils(account AliDnsAccount) (*AliDNSUtils, error) {
 	dnsUtils := AliDNSUtils{
 		account: account,
 	}
-	client, err := CreateClient(tea.String(account.AccessKeyID), tea.String(account.AccessKeySecret))
+	client, err := CreateAliDnsClient(tea.String(account.AccessKeyID), tea.String(account.AccessKeySecret))
 	if err != nil {
 		return nil, err
 	}

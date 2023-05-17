@@ -71,11 +71,29 @@ spec:
                 - accessKeyId
                 - accessKeySecret
                 type: object
+              cloudflare:
+                properties:
+                  apiToken:
+                    type: string
+                  email:
+                    type: string
+                  key:
+                    type: string
+                  proxied:
+                    default: false
+                    description: If true, the DNS record will be proxied by Cloudflare,
+                      can be overrided by Annotation `dns.xzzpig.com/record-proxied`
+                    type: boolean
+                  zoneName:
+                    description: If empty, spec.domainName will be used as zone name
+                    type: string
+                type: object
               domainName:
                 type: string
               providerType:
                 enum:
                 - ALIYUN
+                - CLOUDFLARE
                 type: string
             required:
             - domainName
@@ -184,6 +202,8 @@ spec:
                 required:
                 - name
                 type: object
+              recordID:
+                type: string
               status:
                 type: string
             required:
@@ -541,7 +561,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: ghcr.io/xzzpig/k8s-dns-manager:v1.0.0
+        image: ghcr.io/xzzpig/k8s-dns-manager:v1.1.0
         livenessProbe:
           httpGet:
             path: /healthz

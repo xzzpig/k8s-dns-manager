@@ -20,16 +20,33 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// +kubebuilder:validation:Enum=ALIYUN
+// +kubebuilder:validation:Enum=ALIYUN;CLOUDFLARE
 type DNSProviderType string
 
 const (
-	DNSProviderTypeAliyun DNSProviderType = "ALIYUN"
+	DNSProviderTypeAliyun     DNSProviderType = "ALIYUN"
+	DNSProviderTypeCloudflare DNSProviderType = "CLOUDFLARE"
 )
 
 type AliyunProviderConfig struct {
 	AccessKeyID     string `json:"accessKeyId"`
 	AccessKeySecret string `json:"accessKeySecret"`
+}
+
+type CloudflareProviderConfig struct {
+	// +kubebuilder:validation:Optional
+	// If empty, spec.domainName will be used as zone name
+	ZoneName string `json:"zoneName,omitempty"`
+	// +kubebuilder:validation:Optional
+	APIToken string `json:"apiToken"`
+	// +kubebuilder:validation:Optional
+	Key string `json:"key"`
+	// +kubebuilder:validation:Optional
+	Email string `json:"email"`
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=false
+	// If true, the DNS record will be proxied by Cloudflare, can be overrided by Annotation `dns.xzzpig.com/record-proxied`
+	Proxied bool `json:"proxied"`
 }
 
 // DNSProviderSpec defines the desired state of DNSProvider
@@ -38,6 +55,8 @@ type DNSProviderSpec struct {
 	ProviderType DNSProviderType `json:"providerType"`
 	// +kubebuilder:validation:Optional
 	Aliyun AliyunProviderConfig `json:"aliyun,omitempty"`
+	// +kubebuilder:validation:Optional
+	Cloudflare CloudflareProviderConfig `json:"cloudflare,omitempty"`
 }
 
 // DNSProviderStatus defines the observed state of DNSProvider

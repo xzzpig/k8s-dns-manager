@@ -21,9 +21,14 @@ import (
 	"os"
 
 	"github.com/xzzpig/k8s-dns-manager/pkg/config"
+	"github.com/xzzpig/k8s-dns-manager/pkg/generator"
+	"github.com/xzzpig/k8s-dns-manager/pkg/provider"
+
 	_ "github.com/xzzpig/k8s-dns-manager/pkg/generator/cname"
 	_ "github.com/xzzpig/k8s-dns-manager/pkg/generator/ddns"
+
 	_ "github.com/xzzpig/k8s-dns-manager/pkg/provider/alidns"
+	_ "github.com/xzzpig/k8s-dns-manager/pkg/provider/cloudflare"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -125,6 +130,9 @@ func main() {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
+
+	setupLog.Info("generator registered", "generators", generator.RegistedGenerators())
+	setupLog.Info("provider registered", "providers", provider.RegistedProviders())
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

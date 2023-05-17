@@ -18,11 +18,14 @@ package dns
 
 import (
 	"context"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	dnsv1 "github.com/xzzpig/k8s-dns-manager/api/dns/v1"
 	"github.com/xzzpig/k8s-dns-manager/pkg/provider"
@@ -56,7 +59,7 @@ func (r *DNSProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	_, err := provider.New(&dnsProvider.Spec)
+	_, err := provider.New(ctx, &dnsProvider.Spec)
 	if err != nil {
 		logger.Error(err, "unable to create provider")
 		dnsProvider.Status.Valid = false
@@ -64,7 +67,7 @@ func (r *DNSProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if err := r.Status().Update(ctx, &dnsProvider); err != nil {
 			logger.Error(err, "unable to update DNSProvider status")
 		}
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	dnsProvider.Status.Valid = true
@@ -81,5 +84,23 @@ func (r *DNSProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *DNSProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dnsv1.DNSProvider{}).
+		WithEventFilter(predicate.Funcs{
+			UpdateFunc: func(e event.UpdateEvent) bool {
+				oldGeneration := e.ObjectOld.GetGeneration()
+				newGeneration := e.ObjectNew.GetGeneration()
+				// Generation is only updated on spec changes (also on deletion),
+				// not metadata or status
+				// Filter out events where the generation hasn't changed to
+				// avoid being triggered by status updates
+
+				return oldGeneration != newGeneration
+			},
+			DeleteFunc: func(e event.DeleteEvent) bool {
+				// The reconciler adds a finalizer so we perform clean-up
+				// when the delete timestamp is added
+				// Suppress Delete events to avoid filtering them out in the Reconcile function
+				return false
+			},
+		}).
 		Complete(r)
 }

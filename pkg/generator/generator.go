@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	AnnotationKeyGenerator = "dns.xzzpig.com/generator"
+	AnnotationKeyGenerator    = "dns.xzzpig.com/generator"
+	AnnotationKeyRecordPrefix = "dns.xzzpig.com/record-"
 )
 
 type DNSGeneratorSource string
@@ -49,4 +50,12 @@ type ShowResultFunc = func(reason string, message string, err error)
 
 func GetShowResultFunc(ctx context.Context) ShowResultFunc {
 	return ctx.Value(ContextKeyShowResultFunc).(ShowResultFunc)
+}
+
+func RegistedGenerators() []string {
+	var names []string
+	for name := range generators {
+		names = append(names, name)
+	}
+	return names
 }

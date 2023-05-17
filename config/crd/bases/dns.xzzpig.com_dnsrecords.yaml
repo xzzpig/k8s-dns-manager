@@ -86,6 +86,8 @@ spec:
                 required:
                 - name
                 type: object
+              recordID:
+                type: string
               status:
                 type: string
             required:
