@@ -2,7 +2,7 @@ package util
 
 import (
 	alidns "github.com/alibabacloud-go/alidns-20150109/client"
-	openapi "github.com/alibabacloud-go/tea-rpc/client"
+	openapi "github.com/alibabacloud-go/darabonba-openapi/client"
 	"github.com/alibabacloud-go/tea/tea"
 )
 
@@ -56,10 +56,10 @@ func (dns *AliDNSUtils) GetRecordCount() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return *resp.TotalCount, nil
+	return *resp.Body.TotalCount, nil
 }
 
-func (dns *AliDNSUtils) ListRecords() ([]*alidns.DescribeDomainRecordsResponseDomainRecordsRecord, error) {
+func (dns *AliDNSUtils) ListRecords() ([]*alidns.DescribeDomainRecordsResponseBodyDomainRecordsRecord, error) {
 	totalCount, err := dns.GetRecordCount()
 	if err != nil {
 		return nil, err
@@ -71,21 +71,21 @@ func (dns *AliDNSUtils) ListRecords() ([]*alidns.DescribeDomainRecordsResponseDo
 	if err != nil {
 		return nil, err
 	}
-	return resp.DomainRecords.Record, nil
+	return resp.Body.DomainRecords.Record, nil
 }
 
-func (dns *AliDNSUtils) FindRecordById(id string) (*alidns.DescribeDomainRecordInfoResponse, error) {
+func (dns *AliDNSUtils) FindRecordById(id string) (*alidns.DescribeDomainRecordInfoResponseBody, error) {
 	resp, err := dns.client.DescribeDomainRecordInfo(&alidns.DescribeDomainRecordInfoRequest{
 		RecordId: tea.String(id),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+	return resp.Body, nil
 
 }
 
-func (dns *AliDNSUtils) FindRecordByRR(rr string) (*alidns.DescribeDomainRecordsResponseDomainRecordsRecord, error) {
+func (dns *AliDNSUtils) FindRecordByRR(rr string) (*alidns.DescribeDomainRecordsResponseBodyDomainRecordsRecord, error) {
 	records, err := dns.ListRecords()
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func (dns *AliDNSUtils) CreateRecord(RR string, Value string, Type string) (stri
 	if err != nil {
 		return "", err
 	}
-	return *resp.RecordId, nil
+	return *resp.Body.RecordId, nil
 }
 
 func (dns *AliDNSUtils) DeleteRecord(recordId string) error {

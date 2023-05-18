@@ -6,6 +6,7 @@ import (
 	"time"
 
 	v1 "github.com/xzzpig/k8s-dns-manager/api/dns/v1"
+	"github.com/xzzpig/k8s-dns-manager/pkg/config"
 	"github.com/xzzpig/k8s-dns-manager/pkg/generator"
 )
 
@@ -22,6 +23,9 @@ func (g *CNameGenerator) Generate(ctx context.Context, source generator.DNSGener
 		ingress := generator.GetIngress(ctx)
 		cnameValue, ok := ingress.Annotations[AnnotationKeyCname]
 		if !ok {
+			cnameValue = config.GetConfig().Default.Generator.CName.Value
+		}
+		if cnameValue == "" {
 			showResult := generator.GetShowResultFunc(ctx)
 			showResult("Error", "generate cname record error, annotation "+AnnotationKeyCname+" not found", errors.New("cname annotation not found"))
 			return nil, nil

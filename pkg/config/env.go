@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -18,6 +19,16 @@ type Config struct {
 		}
 		Generator struct {
 			Type string `envconfig:"NATM_DEFAULT_GENERATOR_TYPE"`
+			DDNS struct {
+				Timeout         time.Duration `envconfig:"NATM_DEFAULT_GENERATOR_DDNS_TIMEOUT"`
+				ExtraApis       []string      `envconfig:"NATM_DEFAULT_GENERATOR_DDNS_EXTRA_APIS"`
+				CacheExpire     time.Duration `envconfig:"NATM_DEFAULT_GENERATOR_DDNS_CACHE_EXPIRE"`
+				CleanInterval   time.Duration `envconfig:"NATM_DEFAULT_GENERATOR_DDNS_CLEAN_INTERVAL"`
+				RefreshInternal time.Duration `envconfig:"NATM_DEFAULT_GENERATOR_DDNS_REFRESH_INTERNAL"`
+			}
+			CName struct {
+				Value string `envconfig:"NATM_DEFAULT_GENERATOR_CNAME_VALUE"`
+			}
 		}
 	}
 	Bind struct {

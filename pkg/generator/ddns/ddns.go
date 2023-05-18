@@ -6,6 +6,7 @@ import (
 
 	gocache "github.com/patrickmn/go-cache"
 	v1 "github.com/xzzpig/k8s-dns-manager/api/dns/v1"
+	"github.com/xzzpig/k8s-dns-manager/pkg/config"
 	"github.com/xzzpig/k8s-dns-manager/pkg/generator"
 	"github.com/xzzpig/k8s-dns-manager/util"
 )
@@ -38,7 +39,7 @@ func (g *DDNSGenerator) Support(source generator.DNSGeneratorSource) bool {
 }
 
 func (g *DDNSGenerator) RequeueAfter(ctx context.Context, source generator.DNSGeneratorSource) time.Duration {
-	return time.Minute
+	return config.GetConfig().Default.Generator.DDNS.RefreshInternal
 }
 
 const cacheKeyPublicIP = "publicIP"
@@ -58,6 +59,6 @@ func (g *DDNSGenerator) GetPublicIP() (string, error) {
 
 func init() {
 	generator.Register("ddns", &DDNSGenerator{
-		cache: gocache.New(time.Minute, time.Minute/2),
+		cache: gocache.New(config.GetConfig().Default.Generator.DDNS.CacheExpire, config.GetConfig().Default.Generator.DDNS.CleanInterval),
 	})
 }

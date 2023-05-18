@@ -125,6 +125,12 @@ spec:
 | NATM_DEFAULT_GENERATOR_TYPE | The default generator type for DNS records, will be used when auto generate dns record if the generator type is not specified, will be ignored when the value is empty string | string |  |
 | NATM_BIND_METRICS | The address to bind the metrics server | string | `:8080` |
 | NATM_BIND_HEALTH_PROBE | The address to bind the health probe server | string | `:8081` |
+| NATM_DEFAULT_GENERATOR_DDNS_TIMEOUT | The timeout for ddns service for generator type `ddns` | Duration | `2s` |
+| NATM_DEFAULT_GENERATOR_DDNS_EXTRA_APIS | The extra apis to get public ip for generator type `ddns` | []string |  |
+| NATM_DEFAULT_GENERATOR_DDNS_CACHE_EXPIRE | The expire time for public ip cache for generator type `ddns` | Duration | `1m` |
+| NATM_DEFAULT_GENERATOR_DDNS_CLEAN_INTERVAL | The interval to clean the public ip cache for generator type `ddns` | Duration | `30s` |
+| NATM_DEFAULT_GENERATOR_DDNS_REFRESH_INTERNAL | The interval to refresh the public ip for generator type `ddns` | Duration | `10m` |
+| NATM_DEFAULT_GENERATOR_CNAME_VALUE | The default value for generator type `cname` | string |  |
 
 ## Generate DNS Records
 ### Supported Targets
