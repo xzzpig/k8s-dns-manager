@@ -2,6 +2,7 @@ package generator
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	dnsv1 "github.com/xzzpig/k8s-dns-manager/api/dns/v1"
@@ -26,19 +27,47 @@ const (
 	ContextKeyShowResultFunc ContextKey = "showResultFunc"
 )
 
-type DNSGenerator interface {
+var (
+	ErrGeneratorNotFound = errors.New("generator not found")
+)
+
+type IDNSGenerator interface {
 	Generate(ctx context.Context, source DNSGeneratorSource) ([]dnsv1.DNSRecordSpec, error)
 	Support(source DNSGeneratorSource) bool
 	RequeueAfter(ctx context.Context, source DNSGeneratorSource) time.Duration
 }
 
-var generators = map[string]DNSGenerator{}
-
-func Register(name string, generator DNSGenerator) {
-	generators[name] = generator
+type GeneratorFactoryArgs struct {
+	Spec *dnsv1.DNSGeneratorSpec
+	Ctx  context.Context
 }
 
-func Get(name string) DNSGenerator {
+type GeneratorFactory func(*GeneratorFactoryArgs) (IDNSGenerator, error)
+
+var generatorFactorys = map[string]GeneratorFactory{}
+var generators = map[string]IDNSGenerator{}
+
+func Register(name string, factory GeneratorFactory) {
+	generatorFactorys[name] = factory
+}
+
+func New(generator *dnsv1.DNSGenerator, ctx context.Context) error {
+	factory, ok := generatorFactorys[string(generator.Spec.GeneratorType)]
+	if !ok {
+		return ErrGeneratorNotFound
+	}
+	g, err := factory(&GeneratorFactoryArgs{
+		Spec: &generator.Spec,
+		Ctx:  ctx,
+	})
+	if err != nil {
+		return err
+	}
+	generators[generator.Name] = g
+	return nil
+}
+
+func Get(name string) IDNSGenerator {
 	return generators[name]
 }
 
@@ -52,9 +81,9 @@ func GetShowResultFunc(ctx context.Context) ShowResultFunc {
 	return ctx.Value(ContextKeyShowResultFunc).(ShowResultFunc)
 }
 
-func RegistedGenerators() []string {
+func RegistedFactories() []string {
 	var names []string
-	for name := range generators {
+	for name := range generatorFactorys {
 		names = append(names, name)
 	}
 	return names

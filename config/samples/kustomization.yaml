@@ -2,4 +2,5 @@
 resources:
 - dns_v1_dnsprovider.yaml
 - dns_v1_dnsrecord.yaml
+- dns_v1_dnsgenerator.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

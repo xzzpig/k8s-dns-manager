@@ -15,6 +15,32 @@ rules:
 - apiGroups:
   - dns.xzzpig.com
   resources:
+  - dnsgenerators
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dns.xzzpig.com
+  resources:
+  - dnsgenerators/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - dns.xzzpig.com
+  resources:
+  - dnsgenerators/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - dns.xzzpig.com
+  resources:
   - dnsproviders
   verbs:
   - create

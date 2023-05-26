@@ -120,6 +120,13 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Ingress")
 		os.Exit(1)
 	}
+	if err = (&dnscontroller.DNSGeneratorReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "DNSGenerator")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
@@ -131,7 +138,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	setupLog.Info("generator registered", "generators", generator.RegistedGenerators())
+	setupLog.Info("generator registered", "generators", generator.RegistedFactories())
 	setupLog.Info("provider registered", "providers", provider.RegistedProviders())
 
 	setupLog.Info("starting manager")

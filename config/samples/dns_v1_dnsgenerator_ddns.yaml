@@ -1,0 +1,6 @@
+apiVersion: dns.xzzpig.com/v1
+kind: DNSGenerator
+metadata:
+  name: ddns
+spec:
+  generatorType: DDNS

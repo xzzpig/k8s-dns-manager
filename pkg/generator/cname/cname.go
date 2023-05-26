@@ -6,7 +6,6 @@ import (
 	"time"
 
 	v1 "github.com/xzzpig/k8s-dns-manager/api/dns/v1"
-	"github.com/xzzpig/k8s-dns-manager/pkg/config"
 	"github.com/xzzpig/k8s-dns-manager/pkg/generator"
 )
 
@@ -15,6 +14,7 @@ const (
 )
 
 type CNameGenerator struct {
+	Value string
 }
 
 func (g *CNameGenerator) Generate(ctx context.Context, source generator.DNSGeneratorSource) ([]v1.DNSRecordSpec, error) {
@@ -23,7 +23,7 @@ func (g *CNameGenerator) Generate(ctx context.Context, source generator.DNSGener
 		ingress := generator.GetIngress(ctx)
 		cnameValue, ok := ingress.Annotations[AnnotationKeyCname]
 		if !ok {
-			cnameValue = config.GetConfig().Default.Generator.CName.Value
+			cnameValue = g.Value
 		}
 		if cnameValue == "" {
 			showResult := generator.GetShowResultFunc(ctx)
@@ -50,5 +50,10 @@ func (g *CNameGenerator) RequeueAfter(ctx context.Context, source generator.DNSG
 }
 
 func init() {
-	generator.Register("cname", &CNameGenerator{})
+	// generator.Register("CNAME", &CNameGenerator{})
+	generator.Register("CNAME", func(gfa *generator.GeneratorFactoryArgs) (generator.IDNSGenerator, error) {
+		return &CNameGenerator{
+			Value: gfa.Spec.CNAME.Value,
+		}, nil
+	})
 }

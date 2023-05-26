@@ -1,0 +1,8 @@
+apiVersion: dns.xzzpig.com/v1
+kind: DNSGenerator
+metadata:
+  name: cname
+spec:
+  generatorType: CNAME
+  cname:
+    value: www.sample.com

@@ -20,6 +20,7 @@ import (
 	"context"
 	"reflect"
 	"strings"
+	"time"
 
 	dnsv1 "github.com/xzzpig/k8s-dns-manager/api/dns/v1"
 	"github.com/xzzpig/k8s-dns-manager/pkg/config"
@@ -95,7 +96,7 @@ func (r *IngressReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	recordGenerator := generator.Get(generatorType)
 	if recordGenerator == nil {
 		showResult("Warning", "no generator found", nil)
-		return ctrl.Result{}, nil
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	if !recordGenerator.Support(generator.DNSGeneratorSourceIngress) {

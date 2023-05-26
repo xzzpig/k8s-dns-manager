@@ -2,17 +2,21 @@ package ddns
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	gocache "github.com/patrickmn/go-cache"
 	v1 "github.com/xzzpig/k8s-dns-manager/api/dns/v1"
-	"github.com/xzzpig/k8s-dns-manager/pkg/config"
 	"github.com/xzzpig/k8s-dns-manager/pkg/generator"
-	"github.com/xzzpig/k8s-dns-manager/util"
+	"github.com/xzzpig/k8s-dns-manager/util/cip"
 )
 
+var ErrNoPublicIP = errors.New("can't get public ip")
+
 type DDNSGenerator struct {
-	cache *gocache.Cache
+	cache           *gocache.Cache
+	refreshInternal time.Duration
+	ip              *cip.Cip
 }
 
 func (g *DDNSGenerator) Generate(ctx context.Context, source generator.DNSGeneratorSource) ([]v1.DNSRecordSpec, error) {
@@ -39,7 +43,7 @@ func (g *DDNSGenerator) Support(source generator.DNSGeneratorSource) bool {
 }
 
 func (g *DDNSGenerator) RequeueAfter(ctx context.Context, source generator.DNSGeneratorSource) time.Duration {
-	return config.GetConfig().Default.Generator.DDNS.RefreshInternal
+	return g.refreshInternal
 }
 
 const cacheKeyPublicIP = "publicIP"
@@ -49,16 +53,24 @@ func (g *DDNSGenerator) GetPublicIP() (string, error) {
 	if ok {
 		return ip.(string), nil
 	}
-	ip, err := util.GetPublicIP()
-	if err != nil {
-		return "", err
+	ip = g.ip.MyIPv4()
+	if ip == "" {
+		return "", ErrNoPublicIP
 	}
 	g.cache.SetDefault(cacheKeyPublicIP, ip)
 	return ip.(string), nil
 }
 
 func init() {
-	generator.Register("ddns", &DDNSGenerator{
-		cache: gocache.New(config.GetConfig().Default.Generator.DDNS.CacheExpire, config.GetConfig().Default.Generator.DDNS.CleanInterval),
+	generator.Register("DDNS", func(gfa *generator.GeneratorFactoryArgs) (generator.IDNSGenerator, error) {
+		ip := cip.New()
+		config := gfa.Spec.DDNS.DeepCopy().WithDefault()
+		ip.ApiIPv4 = append(ip.ApiIPv4, config.ExtraApis...)
+		ip.MinTimeout = time.Duration(config.Timeout) * time.Second
+		return &DDNSGenerator{
+			cache:           gocache.New(time.Second*time.Duration(config.CacheExpire), time.Second*time.Duration(config.CleanInterval)),
+			refreshInternal: time.Second * time.Duration(config.RefreshInternal),
+			ip:              ip,
+		}, nil
 	})
 }

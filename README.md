@@ -37,9 +37,19 @@ spec:
 
 ### Auto Generate DNS Records
 #### Ingress
-> `k8s-dns-manager` will create an A `DNSRecord` per host with the announced `Generator Types`
+> `k8s-dns-manager` will create an A `DNSRecord` per host with the announced `DNSGenerator`
 
 For example
+> create a generator first
+```yaml
+apiVersion: dns.xzzpig.com/v1
+kind: DNSGenerator
+metadata:
+  name: ddns
+spec:
+  generatorType: DDNS
+```
+> add annotation `dns.xzzpig.com/generator` to the ingress to use the generator
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -71,6 +81,9 @@ kubectl apply -f https://github.com/xzzpig/k8s-dns-manager/raw/main/deploy/manif
 ```bash
 kubectl delete -f https://github.com/xzzpig/k8s-dns-manager/raw/main/deploy/bundle.yaml  
 ```
+
+## Model
+![Model](model.drawio.svg)
 
 ## Reference
 ### Supported DNS Providers
@@ -125,21 +138,15 @@ spec:
 | NATM_DEFAULT_GENERATOR_TYPE | The default generator type for DNS records, will be used when auto generate dns record if the generator type is not specified, will be ignored when the value is empty string | string |  |
 | NATM_BIND_METRICS | The address to bind the metrics server | string | `:8080` |
 | NATM_BIND_HEALTH_PROBE | The address to bind the health probe server | string | `:8081` |
-| NATM_DEFAULT_GENERATOR_DDNS_TIMEOUT | The timeout for ddns service for generator type `ddns` | Duration | `2s` |
-| NATM_DEFAULT_GENERATOR_DDNS_EXTRA_APIS | The extra apis to get public ip for generator type `ddns` | []string |  |
-| NATM_DEFAULT_GENERATOR_DDNS_CACHE_EXPIRE | The expire time for public ip cache for generator type `ddns` | Duration | `1m` |
-| NATM_DEFAULT_GENERATOR_DDNS_CLEAN_INTERVAL | The interval to clean the public ip cache for generator type `ddns` | Duration | `30s` |
-| NATM_DEFAULT_GENERATOR_DDNS_REFRESH_INTERNAL | The interval to refresh the public ip for generator type `ddns` | Duration | `10m` |
-| NATM_DEFAULT_GENERATOR_CNAME_VALUE | The default value for generator type `cname` | string |  |
 
 ## Generate DNS Records
 ### Supported Targets
 - Ingress
-### Supported `Generator Types`
-| Name | Description | Target |
+### Supported `DNSGenerator` Types
+| Type | Description | Support Target |
 | --- | --- | --- |
-| ddns | Type is A; Value is the public ip of the ingress controller get by ddns service | Ingress |
-| cname | Type is CNAME; Value should be annotated by `dns.xzzpig.com/cname` on the target | Ingress |
+| DDNS | Type is A; Value is the public ip of the ingress controller get by ddns service | Ingress |
+| CNAME | Type is CNAME; Value can be overwrited by annotation `dns.xzzpig.com/cname` on the target | Ingress |
 
 ## Annotations
 | Name | Description | Target |
