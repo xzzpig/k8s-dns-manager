@@ -1,5 +1,13 @@
 # Kubernetes DNS Manager
 
+### ⚠️ Project Deprecated ⚠️
+
+**Warning: This project is deprecated. Please use [kube-dns-manager](https://github.com/xzzpig/kube-dns-manager) instead.**
+
+This project is no longer maintained. All features and updates have been migrated to the new project [kube-dns-manager](https://github.com/xzzpig/kube-dns-manager). Please switch to the new project as soon as possible to receive the latest features and support.
+
+Thank you for your understanding and support!
+
 ## Overview
 ### DNSRecord
 > allows you to manage DNS records for your Kubernetes cluster using custom resources.
